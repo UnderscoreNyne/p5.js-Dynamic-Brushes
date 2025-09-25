@@ -1,11 +1,12 @@
 /**
  * DATT 2400 Dynamic Brushes Project
- * Description:  Description: Drawing software with multiple brushes (FLESH OUT DESC LATER)
+ * Description:  Description: Drawing software with multiple brushes: Watercolour brush, curved line brush, splatter brush.
  * Author: Joseph Indovina (joeind23@my.yorku.ca)
  * Date Created: 2025/09/18
  * Last Modified: 2025/09/24
  *
  * Instructions: Run the program.
+ * 
  * Mouse and Key Mapping
  *
  * MOUSE
@@ -18,17 +19,13 @@
  * ]                   : increase opacity
  * [                   : decrease opacity
  * '                   : increase amount of shapes per tick
- * ;                   : decrease amount of shapes per
+ * ;                   : decrease amount of shapes per tick
  * f                   : toggle fill
  * del, backspace      : erase
  * s                   : save png
  */
 
-
-
-let colourPicker;
-let strokeColor;
-let backgroundColor;
+// shape/brush settings
 let x = [];
 let y = [];
 
@@ -42,31 +39,34 @@ let timer = 0;
 let prevX;
 let prevY;
 
+let speed;
+
 // colour customization variables
+let colourPicker;
+let strokeColor;
+let backgroundColor;
+
 let r = 0;
 let g = 0;
 let b = 0;
 let a = 220;
 
-let speed;
-let isUpdated = false;
-
 // input boxes as temp gui
 let radiusInput;
 let stepInput;
 let opacityInput;
-
-let bMode;
+let brushTypeInput;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  backgroundColor = 255;
 
+  backgroundColor = 255;
   strokeWeight(0.75);
   background(backgroundColor);
 
+  // create colour picker and initialize GUI.
   colourPicker = createColorPicker('#000000');
-  colourPicker.position(10,70);
+  colourPicker.position(10,90);
   updateGui();
   
   setShape1(shapeRadius, shapeResolution);
@@ -76,10 +76,10 @@ function setShape1(radius, resolution) {
   let unitAngle = radians(360/resolution);
   
   for(let i = 0; i < resolution; i++) {
-    if(random(shapeResolution*0.3)<=shapeResolution*0.3-1){
+    if(random(shapeResolution*0.3)<=shapeResolution*0.3-1){ // normal circular points
       x[i] = cos(unitAngle * i) * radius;
       y[i] = sin(unitAngle * i) * radius;
-    } else {
+    } else { // extended points if random chance hits
       x[i] = cos(unitAngle * i) * (radius*1.3);
       y[i] = sin(unitAngle * i) * (radius*1.3);
     }
@@ -87,6 +87,7 @@ function setShape1(radius, resolution) {
 }
 
 function draw() {
+  // set strokeColor based on colour picker settings/opacity
   strokeColor = colourPicker.color();
   strokeColor.setAlpha(a);
   stroke(strokeColor);
@@ -101,7 +102,7 @@ function draw() {
           break;
         }
         case 1: {
-          // no translate here, the line is determined using the previous mouse position rather than a fixed shape.
+          // no translate here, the line is determined using the previous mouse position rather than moving a fixed shape.
           drawShape2();
           break;
         }
@@ -115,6 +116,7 @@ function draw() {
       pop();
     }
   } else {
+    // reset timer and previous mouse location when mouse is unpressed
     prevX = mouseX;
     prevY = mouseY;
     timer = 0;
@@ -128,8 +130,8 @@ function drawShape1() {
     speed = dist(mouseX,mouseY, pmouseX,pmouseY);
   }
 
-  let initialDia = speed*(shapeRadius*0.01);
-  let opacity = (a*0.2)+timer;
+  let dia = speed*(shapeRadius*0.01); // determine diameter based on speed.
+  let opacity = (a*0.2)+timer; // determine opacity based on how long the mouse has been held.
 
   push();
   strokeColor.setAlpha(opacity);
@@ -142,9 +144,9 @@ function drawShape1() {
     noFill();
   }
 
-  setShape1(initialDia, shapeResolution);
+  setShape1(dia, shapeResolution); // determine coordinates
 
-  rotate(random(360));
+  rotate(random(360)); // randomly rotate shape
 
   // create shape
   beginShape();
@@ -152,7 +154,7 @@ function drawShape1() {
   curveVertex(x[shapeResolution - 1], y[shapeResolution - 1]);
 
   for (let i = 0; i < shapeResolution; i++) {
-    curveVertex(x[i], y[i]);
+    curveVertex(x[i], y[i]); // create/connect points
   }
   
   curveVertex(x[0], y[0]);
@@ -161,12 +163,12 @@ function drawShape1() {
   pop();
 
   push();
-  for(let i = 0; i<initialDia*0.2; i++){
-    if(filled) noStroke(); else noFill();
-    if(filled) fill(backgroundColor);
-    circle(random(-initialDia,initialDia),random(-initialDia,initialDia), random(-initialDia*0.05,initialDia*0.1));
-    if(filled) fill(strokeColor);
-    circle(random(-initialDia,initialDia),random(-initialDia,initialDia), random(-initialDia*0.1,initialDia*0.4));
+  for(let i = 0; i<dia*0.2; i++){ // add dots onto brush
+    if(filled) noStroke(); else noFill(); 
+    if(filled) fill(backgroundColor); // fill dots with background colour
+    circle(random(-dia,dia),random(-dia,dia), random(-dia*0.05,dia*0.1));
+    if(filled) fill(strokeColor); // fill outside dots with stroke colour
+    circle(random(-dia,dia),random(-dia,dia), random(-dia*0.1,dia*0.4));
   }
   pop();
 
@@ -188,9 +190,10 @@ function drawShape2() {
   
   // create curve
   beginShape();
-  curveVertex(mouseX, (mouseY+((mouseY-prevY)*(shapeRadius*0.1))));
+  curveVertex(mouseX, (mouseY+((mouseY-prevY)*(shapeRadius*0.1)))); 
   
-  curveVertex(mouseX, mouseY);
+  // curve goes from current mouse position to previous mouse position
+  curveVertex(mouseX, mouseY);  
   curveVertex(prevX, prevY);
   
   curveVertex(prevX, prevY);
@@ -212,24 +215,30 @@ function drawShape3() {
   }
 
   if(random(2)<=1){
-    circle(random(-shapeRadius*0.4,shapeRadius*0.4), random(-shapeRadius*0.4,shapeRadius*0.4), random(shapeRadius*0.5));
+    circle(random(-shapeRadius*0.4,shapeRadius*0.4), random(-shapeRadius*0.4,shapeRadius*0.4), random(shapeRadius*0.5)); // place inner circles
   } else {
-    circle(random(-shapeRadius,shapeRadius), random(-shapeRadius,shapeRadius), random(shapeRadius*0.2));
+    circle(random(-shapeRadius,shapeRadius), random(-shapeRadius,shapeRadius), random(shapeRadius*0.2)); // place outer circles
   } 
 }
 
 function updateGui(){
+  // create gui boxes.
   radiusInput = createInput("Radius: "+shapeRadius);
   radiusInput.position(10,10);
   radiusInput.size(AUTO, 10);
 
-  stepInput = createInput("Amount: "+stepSize);
+  stepInput = createInput("Density: "+stepSize);
   stepInput.position(10,30);
   stepInput.size(AUTO, 10);
 
   opacityInput = createInput("Opacity: "+a);
   opacityInput.position(10,50);
   opacityInput.size(AUTO, 10);
+
+  brushTypeInput = createInput("Brush Type: "+(shapeType+1));
+  brushTypeInput.position(10,70);
+  brushTypeInput.size(AUTO, 10);
+  
 }
 
 function keyReleased() {
@@ -265,5 +274,5 @@ function keyReleased() {
   if(key == ';' && stepSize>=2) stepSize -= 1;
   if(key == '\'') stepSize += 1;
   
-  updateGui();
+  updateGui(); // update gui to show new information updated by keystroke.
 }
