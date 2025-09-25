@@ -13,7 +13,7 @@ KEYS
 ]                   : increase opacity  
 [                   : decrease opacity  
 '                   : increase amount of shapes per tick  
-;                   : decrease amount of shapes per tick 
+;                   : decrease amount of shapes per tick  
 f                   : toggle fill  
 del, backspace      : erase  
 s                   : save png  
